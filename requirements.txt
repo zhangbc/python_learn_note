@@ -1,0 +1,5 @@
+setuptools~=40.8.0
+pecan~=1.4.0
+WebTest~=2.0.35
+WebOb~=1.8.7
+requests~=2.25.1
