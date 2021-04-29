@@ -439,6 +439,185 @@ admin.site.register(Question)
 
 ## 编写你的第一个 Django 应用，第 3 部分
 
+`Django` 中的视图的概念是 **一类具有相同功能和模板的网页的集合**。
+
+- 编写更多的视图
+
+`polls/views.py`
+
+```python
+from django.http import HttpResponse
+
+
+# Create your views here.
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
+
+
+def detail(request, question_id):
+    return HttpResponse("You're looking at question {0}.".format(question_id))
+
+
+def results(request, question_id):
+    resp = "You're looking at the results of question {0}"
+    return HttpResponse(resp.format(question_id))
+
+
+def vote(request, question_id):
+    return HttpResponse("You're voting on question {0}.".format(question_id))
+```
+
+`polls/urls.py`
+
+```python
+#!/usr/bin/env python
+# coding:utf-8
+
+
+from django.urls import path
+from . import views
+
+
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('<int:question_id>/', views.detail, name='details'),
+    path('<int:question_id>/results/', views.results, name='results'),
+    path('<int:question_id>/vote/', views.vote, name='vote')
+]
+```
+
+每个视图必须要做的只有两件事：返回一个包含被请求页面内容的 [`HttpResponse`](https://docs.djangoproject.com/zh-hans/3.2/ref/request-response/#django.http.HttpResponse) 对象，或者抛出一个异常，比如 [`Http404`](https://docs.djangoproject.com/zh-hans/3.2/topics/http/views/#django.http.Http404) 。
+
+`polls/views.py`
+
+````python
+from django.http import HttpResponse
+
+from .models import Question
+
+
+# Create your views here.
+
+def index(request):
+    lastest_question_list = Question.objects.order_by('-pub_date')[:5]
+    output = ', '.join(q.question_text for q in lastest_question_list)
+    return HttpResponse(output)
+````
+
+首先，在 `polls` 目录里创建一个 `templates` 目录。`Django` 将会在这个目录里查找模板文件。
+
+项目的 [`TEMPLATES`](https://docs.djangoproject.com/zh-hans/3.2/ref/settings/#std:setting-TEMPLATES) 配置项描述了 `Django` 如何载入和渲染模板。默认的设置文件设置了 `DjangoTemplates` 后端，并将 [`APP_DIRS`](https://docs.djangoproject.com/zh-hans/3.2/ref/settings/#std:setting-TEMPLATES-APP_DIRS) 设置成了 `True`。这一选项将会让 `DjangoTemplates` 在每个 [`INSTALLED_APPS`](https://docs.djangoproject.com/zh-hans/3.2/ref/settings/#std:setting-INSTALLED_APPS) 文件夹中寻找 “`templates`" 子目录。
+
+在 `templates` 目录里，再创建一个目录 `polls`，然后在其中新建一个文件 `index.html` 。换句话说，你的模板文件的路径应该是 `polls/templates/polls/index.html` 。因为``app_directories`` 模板加载器是通过上述描述的方法运行的，所以 `Django` 可以引用到 `polls/index.html` 模板。
+
+`polls/templates/polls/index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Poll project</title>
+</head>
+<body>
+    {% if latest_question_list %}
+        <ul>
+            {% for question in latest_question_list %}
+                <li><a href="/polls/{{question.id}}/">{{question.question_text}}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>
+            No polls are available.
+        </p>
+    {% endif %}
+</body>
+</html>
+```
+
+更新视图 `polls/views.py`
+
+```python
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    template = loader.get_template('polls/index.html')
+    context = {
+        'latest_question_list': latest_question_list,
+    }
+    
+    return HttpResponse(template.render(context, request))
+```
+
+`render()`：载入模板，填充上下文，再返回由它生成的 [`HttpResponse`](https://docs.djangoproject.com/zh-hans/3.2/ref/request-response/#django.http.HttpResponse) 对象。
+
+`polls/views.py`
+
+```python
+from django.shortcuts import render
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    context = {
+        'latest_question_list': latest_question_list,
+    }
+
+    return render(request, 'polls/index.html', context)
+```
+
+- 抛出 404 错误
+
+`polls/views.py`
+
+```python
+def detail(request, question_id):
+    try:
+        question = Question.objects.get(pk=question_id)
+    except Question.DoesNotExist:
+        raise Http404("Question does not exist!")
+    
+    return render(request, 'polls/detail.html', {'question': question})
+```
+
+`polls/templates/polls/detail.html`
+
+```html
+{{ question }}
+```
+
+`get_object_or_404()`：尝试用 [`get()`](https://docs.djangoproject.com/zh-hans/3.2/ref/models/querysets/#django.db.models.query.QuerySet.get) 函数获取一个对象，如果不存在就抛出 [`Http404`](https://docs.djangoproject.com/zh-hans/3.2/topics/http/views/#django.http.Http404) 错误。
+
+`polls/views.py`
+
+```python
+from django.shortcuts import render, get_object_or_404
+
+def detail(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/detail.html', {'question': question})
+```
+
+- 模板系统
+
+为 `URL` 名称添加命名空间
+
+`polls/urls.py`
+
+```python
+app_name = 'polls'
+```
+
+`polls/templates/polls/index.html`
+
+```html
+<li><a href="{% url 'polls:detail' question.id %}/">{{question.question_text}}</a></li>
+```
+
+
+
 
 
 ## 编写你的第一个 Django 应用，第 4 部分
