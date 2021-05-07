@@ -12,7 +12,7 @@
 
 - 设计模型
 
-`Django` 无需数据库就可以使用，它提供了 [对象关系映射器](https://en.wikipedia.org/wiki/Object-relational_mapping) 通过此技术，可以使用 `Python` 代码来描述数据库结构。
+`Django` 无需数据库就可以使用，它提供了 [对象关系映射器](https://en.wikipedia.org/wiki/Object-relational_mapping)，通过此技术，可以使用 `Python` 代码来描述数据库结构。
 
 - 应用数据模型
 
@@ -126,8 +126,6 @@ from django.http import HttpResponse
 
 
 # Create your views here.
-
-
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 ```
@@ -234,8 +232,6 @@ Running migrations:
 from django.db import models
 
 # Create your models here.
-
-
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
@@ -352,8 +348,6 @@ from django.db import models
 from django.utils import timezone
 
 # Create your models here.
-
-
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
@@ -450,7 +444,6 @@ from django.http import HttpResponse
 
 
 # Create your views here.
-
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 
@@ -481,7 +474,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('<int:question_id>/', views.detail, name='details'),
+    path('<int:question_id>/', views.detail, name='detail'),
     path('<int:question_id>/results/', views.results, name='results'),
     path('<int:question_id>/vote/', views.vote, name='vote')
 ]
@@ -498,7 +491,6 @@ from .models import Question
 
 
 # Create your views here.
-
 def index(request):
     lastest_question_list = Question.objects.order_by('-pub_date')[:5]
     output = ', '.join(q.question_text for q in lastest_question_list)
@@ -524,7 +516,7 @@ def index(request):
     {% if latest_question_list %}
         <ul>
             {% for question in latest_question_list %}
-                <li><a href="/polls/{{question.id}}/">{{question.question_text}}</a></li>
+                <li><a href="/polls/{{ question.id }}/">{{question.question_text}}</a></li>
             {% endfor %}
         </ul>
     {% else %}
@@ -602,6 +594,12 @@ def detail(request, question_id):
 
 - 模板系统
 
+去除模板中的硬编码 `URL`， `polls/templates/polls/index.html`：
+
+```html
+<li><a href="{% url 'detail' question.id %}">{{ question.question_text }}</a></li>
+```
+
 为 `URL` 名称添加命名空间
 
 `polls/urls.py`
@@ -616,11 +614,13 @@ app_name = 'polls'
 <li><a href="{% url 'polls:detail' question.id %}/">{{question.question_text}}</a></li>
 ```
 
-
-
-
-
 ## 编写你的第一个 Django 应用，第 4 部分
+
+- 编写表单
+
+
+
+- 使用通用视图
 
 
 
@@ -671,3 +671,4 @@ zsh: command not found: gitk
 ## 参考资料
 
 - [zsh: command not found: gitk](https://www.jianshu.com/p/7c6577dec016)
+
