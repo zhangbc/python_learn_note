@@ -618,11 +618,79 @@ app_name = 'polls'
 
 - 编写表单
 
+`polls/templates/polls/detail.html`
 
+```html
+<h1>{{ question.question_text }}</h1>
+
+{% if error_message %} <p><strong>{{ error_message }}</strong></p>
+{% endif %}
+
+<form action="{% url 'polls:vote' question.id %}" method="post">
+  {% csrf_token %}
+  {% for choice in question.choice_set.all %}
+  <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+  <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+  {% endfor %}
+  <input type="submit" value="vote">
+</form>
+```
+
+`polls/views.py`
+
+```python
+def vote(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    try:
+        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+    except (KeyError, Choice.DoesNotExist):
+        return render(request, 'polls/detail.html', {
+            'question': question,
+            'error_message': "You didn't select a choice."
+        })
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+        return HttpResponseRedirect(reverse('polls:results', args=(question_id, )))
+```
+
+```python
+def results(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/result.html', {'question': question})
+```
+
+`polls/templates/polls/results.html`
+
+```html
+<h1>{{ question.question_text }}</h1>
+
+<ul>
+  {% for choice in question.choice_set.all %}
+  <li>{{ choice.choice_text }} -- {{ choice.votes }} vote {{ choice.votes |pluralize }}</li>
+  {% endfor %}
+</ul>
+<a href="{% url 'polls:detail' question.id %}"> Vote again?</a>
+```
 
 - 使用通用视图
 
+`Django` 提供一种快捷方式，叫做“**通用视图**”系统。
 
+改良 `URLconf`：`polls/urls.py`
+
+```python
+urlpatterns = [
+    path('', views.IndexView.as_view(), name='index'),
+    path('<int:pk>/', views.DetailView.as_view(), name='detail'),
+    path('<int:pk>/results/', views.ResultsView.as_view(), name='results'),
+    path('<int:question_id>/vote/', views.vote, name='vote')
+]
+```
+
+改良视图：`polls/views.py`
+
+默认情况下，通用视图 [`DetailView`](https://docs.djangoproject.com/zh-hans/3.2/ref/class-based-views/generic-display/#django.views.generic.detail.DetailView) 使用一个叫做 `<app name>/<model name>_detail.html` 的模板；[`ListView`](https://docs.djangoproject.com/zh-hans/3.2/ref/class-based-views/generic-display/#django.views.generic.list.ListView) 使用一个叫做 `<app name>/<model name>_list.html` 的默认模板
 
 ## 编写你的第一个 Django 应用，第 5 部分
 
