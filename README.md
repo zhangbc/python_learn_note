@@ -690,11 +690,293 @@ urlpatterns = [
 
 改良视图：`polls/views.py`
 
+```python
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
+
+    def get_queryset(self):
+        return Question.objects.order_by('-pub_date')[:5]
+
+
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'polls/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
+```
+
 默认情况下，通用视图 [`DetailView`](https://docs.djangoproject.com/zh-hans/3.2/ref/class-based-views/generic-display/#django.views.generic.detail.DetailView) 使用一个叫做 `<app name>/<model name>_detail.html` 的模板；[`ListView`](https://docs.djangoproject.com/zh-hans/3.2/ref/class-based-views/generic-display/#django.views.generic.list.ListView) 使用一个叫做 `<app name>/<model name>_list.html` 的默认模板
 
 ## 编写你的第一个 Django 应用，第 5 部分
 
+- 基本测试脚本编写
 
+**自动化测试** 是由某个系统帮你自动完成的。当你创建好了一系列测试，每次修改应用代码后，就可以自动检查出修改后的代码是否还像你曾经预期的那样正常工作。
+
+`Bug` 复现：
+
+```shell
+(/anaconda3) ☁  mysite [master] python manage.py shell 
+Python 3.7.3 (default, Mar 27 2019, 16:54:48) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 7.6.1 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: import datetime                                                                                                                
+
+In [2]: from django.utils import timezone                                                                                              
+
+In [3]: from polls.models import Question                                                                                              
+
+In [4]: future_qestion = Question(pub_date=timezone.now() + datetime.timedelta(days=30))                                               
+
+In [5]: future_qestion.was_published_recently()                                                                                        
+Out[5]: True
+```
+
+创建测试：`polls/tests.py`
+
+```python
+import datetime
+
+from django.test import TestCase
+from django.utils import timezone
+
+from .models import Question
+
+
+# Create your tests here.
+class QuestionModelTests(TestCase):
+
+    def test_was_published_recently_with_future_question(self):
+        """
+        was_published_recently() returns False for questions whose pub_date
+        is in the future.
+        :return:
+        """
+
+        time_future = timezone.now() + datetime.timedelta(days=30)
+        future_question = Question(pub_date=time_future)
+        self.assertIs(future_question.was_published_recently(), False)
+```
+
+运行测试：
+
+```shell
+(/anaconda3) ☁  mysite [master] ⚡  ppython manage.py test polls 
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+F
+======================================================================
+FAIL: test_was_published_recently_with_future_question (polls.tests.QuestionModelTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/projects/demo_django/mysite/polls/tests.py", line 21, in test_was_published_recently_with_future_question
+    self.assertIs(future_question.was_published_recently(), False)
+AssertionError: True is not False
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+Destroying test database for alias 'default'...
+```
+
+修复 `Bug`：`polls/models.py`
+
+```python
+def was_published_recently(self):
+  time_now = timezone.now()
+  return timezone.now() - datetime.timedelta(days=1) <= self.pub_date <= time_now
+```
+
+- 测试视图
+
+`Django` 提供了一个供测试使用的 [`Client`](https://docs.djangoproject.com/zh-hans/3.2/topics/testing/tools/#django.test.Client) 来模拟用户和视图层代码的交互。
+
+在 [`shell`](https://docs.djangoproject.com/zh-hans/3.2/ref/django-admin/#django-admin-shell) 中配置测试环境：
+
+```shell
+(/anaconda3) ☁  mysite [master] ⚡  ppython manage.py shell 
+Python 3.7.3 (default, Mar 27 2019, 16:54:48) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 7.6.1 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: from django.test.utils import setup_test_environment                                                                           
+
+In [2]: setup_test_environment()                                                                                                       
+```
+
+导入 [`django.test.TestCase`](https://docs.djangoproject.com/zh-hans/3.2/topics/testing/tools/#django.test.TestCase) 类：
+
+```shell
+In [3]: from django.test import Client                                                                                                 
+
+In [4]: client = Client()   
+```
+
+```shell
+In [5]: response = client.get('/')                                                                                                     
+Not Found: /
+
+In [6]: response.status_code                                                                                                           
+Out[6]: 404
+
+In [7]: from django.urls import reverse                                                                                                
+
+In [8]: response = client.get(reverse('polls:index'))                                                                                  
+
+In [9]: response.status_code                                                                                                           
+Out[9]: 200
+
+In [10]: response.content                                                                                                              
+Out[10]:  ....
+
+In [11]: response.context                                                                                                              
+Out[11]: [...]
+
+In [12]: response.context_data                                                                                                         
+Out[12]: 
+{'paginator': None,
+ 'page_obj': None,
+ 'is_paginated': False,
+ 'object_list': <QuerySet [<Question: What's new?>]>,
+ 'latest_question_list': <QuerySet [<Question: What's new?>]>,
+ 'view': <polls.views.IndexView at 0x1098759b0>}
+
+
+In [13]: response.context['latest_question_list']                                                                                      
+Out[13]: <QuerySet [<Question: What's new?>]>
+
+```
+
+改善视图：`polls/views.py`
+
+```python
+from django.utils import timezone
+
+
+# Create your views here.
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
+
+    def get_queryset(self):
+        return Question.objects.filter(
+            pub_date__lte=timezone.now()
+        ).order_by('-pub_date')[:5]
+```
+
+```python
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'polls/detail.html'
+    
+    def get_queryset(self):
+        return Question.objects.filter(
+            pub_date__lte=timezone.now()
+        )
+```
+
+编写测试类：`polls/tests.py`
+
+```python
+def create_question(question_text, days):
+    """
+    Create a question with the given `question_text` and published the
+    given number of `days` offset to now (negative for questions published
+    in the past, positive for questions that have yet to be published).
+    :param question_text:
+    :param days:
+    :return:
+    """
+
+    t = timezone.now() + datetime.timedelta(days=days)
+    return Question.objects.create(question_text=question_text, pub_date=t)
+
+
+class QuestionIndexViewTests(TestCase):
+
+    def test_no_questions(self):
+        """
+        If no questions exist, an appropriate message is displayed.
+        :return:
+        """
+
+        response = self.client.get(reverse('polls:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No polls are available.")
+        self.assertQuerysetEqual(response.context['latest_question_list'], [])
+
+    def test_past_question(self):
+        """
+        Questions with a pub_date in the past are displayed on the
+        index page.
+        :return:
+        """
+
+        question = create_question(question_text='Past question.', days=-30)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            [question]
+        )
+
+    def test_future_question(self):
+        """
+        Questions with a pub_date in the future aren't displayed on
+        the index page.
+        :return:
+        """
+
+        create_question(question_text='Future question.', days=30)
+        response = self.client.get(reverse('polls:index'))
+        self.assertContains(response, "No polls are available.")
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            []
+        )
+
+    def test_future_past_question(self):
+        """
+        Even if both past and future questions exist, only past questions
+        are displayed.
+        :return:
+        """
+
+        question = create_question(question_text='Past question.', days=-30)
+        create_question(question_text='Future question.', days=30)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            [question]
+        )
+
+    def test_two_past_question(self):
+        """
+        The questions index page may display multiple questions.
+        :return:
+        """
+
+        question1 = create_question(question_text='Past question 1.', days=-30)
+        question2 = create_question(question_text='Past question 2.', days=-5)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            [question2, question1]
+        )
+```
+
+关于测试的建议：
+
+> 1）对于每个模型和视图都建立单独的 `TestClass`；
+>
+> 2）每个测试方法只测试一个功能；
+>
+> 3）给每个测试方法起个能描述其功能的名字。
 
 ## 编写你的第一个 Django 应用，第 6 部分
 
@@ -734,9 +1016,14 @@ zsh: command not found: gitk
 (base) ☁  demo_django [master] git push origin master
 ```
 
+3，修改 `git` 历史提交
 
+解决方案：[git 修改已提交的内容](https://blog.csdn.net/sodaslay/article/details/72948722)
 
 ## 参考资料
 
 - [zsh: command not found: gitk](https://www.jianshu.com/p/7c6577dec016)
+- [git 修改已提交的内容](https://blog.csdn.net/sodaslay/article/details/72948722)
+
+- [PyCharm 2021.1.1 激活码 安装教程 破解版下载 (亲测有用，永久激活，2021年4月30日更新~)](https://www.exception.site/essay/how-to-free-use-pycharm-2020)
 
