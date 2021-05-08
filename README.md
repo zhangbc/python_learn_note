@@ -980,7 +980,41 @@ class QuestionIndexViewTests(TestCase):
 
 ## 编写你的第一个 Django 应用，第 6 部分
 
+ `django.contrib.staticfiles` 存在的意义：将各个应用的静态文件（和一些你指明的目录里的文件）统一收集起来，这样一来，在生产环境中，这些文件就会集中在一个便于分发的地方。
 
+- 自定义应用的界面和风格
+
+在 `polls` 目录下创建一个名为 `static` 的目录，`Django` 将在该目录下查找静态文件。
+
+在刚创建的 `static` 文件夹中创建一个名为 `polls` 的文件夹，再在 `polls` 文件夹中创建一个名为 `style.css` 的文件。
+
+`polls/static/polls/style.css`：
+
+```css
+li a {
+    color: green;
+}
+
+body {
+    background: white url("images/background.gif") no-repeat;
+}
+```
+
+`polls/templates/polls/index.html`：
+
+```html
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'polls/style.css' %}" type="text/css">
+    <title>Poll project</title>
+</head>
+  ..........
+</html>
+```
 
 ## 编写你的第一个 Django 应用，第 7 部分
 
