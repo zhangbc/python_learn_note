@@ -1018,7 +1018,134 @@ body {
 
 ## 编写你的第一个 Django 应用，第 7 部分
 
+- 自定义后台表单
 
+通过 `admin.site.register(Question)` 注册 `Question` 模型，`Django` 能够构建一个默认的表单用于展示。
+
+`polls/admin.py`：
+
+```python
+# Register your models here.
+class QuestionAdmin(admin.ModelAdmin):
+    
+    fields = ['pub_date', 'question_text']
+
+
+admin.site.register(Question, QuestionAdmin)
+```
+
+```python
+class QuestionAdmin(admin.ModelAdmin):
+
+    fieldsets = [
+        (None, {'fields': ['question_text']}),
+        ('Date info', {'fields': ['pub_date']})
+    ]
+```
+
+- 添加关联对象
+
+1）向后台注册 `Choice` ：`polls/admin.py`
+
+```python
+from .models import Question, Choice
+
+admin.site.register(Choice)
+```
+
+2）改进注册方式：`polls/admin.py`
+
+```python
+class ChoiceInline(admin.TabularInline):
+		"""
+		继承 TabularInline 比 StackedInline 更紧凑
+		"""
+    
+    model = Choice
+    # 默认提供3个足够的选项字段
+    extra = 3
+
+
+class QuestionAdmin(admin.ModelAdmin):
+
+    fieldsets = [
+        (None, {'fields': ['question_text']}),
+        ('Date info', {'fields': ['pub_date'],
+                       'classes': ['collapse']})
+    ]
+
+    inlines = [ChoiceInline]
+```
+
+- 自定义后台更改列表
+
+默认情况下，`Django` 显示每个对象的 `str()` 返回的值。但有时如果我们能够显示单个字段，它会更有帮助。为此，使用 [`list_display`](https://docs.djangoproject.com/zh-hans/3.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_display) 后台选项，它是一个包含要显示的字段名的元组，在更改列表页中以列的形式展示这个对象。
+
+`polls/admin.py`：
+
+```python
+class QuestionAdmin(admin.ModelAdmin):
+
+    # .........
+    list_display = ['question_text', 'pub_date', 'was_published_recently']
+```
+
+使用 [`display()`](https://docs.djangoproject.com/zh-hans/3.2/ref/contrib/admin/#django.contrib.admin.display) 装饰器来改进 `polls/models.py`：
+
+```python
+from django.contrib import admin
+
+
+# Create your models here.
+class Question(models.Model):
+
+    # .....
+    @admin.display(
+        boolean=True,
+        ordering='pub_date',
+        description='Published recently?'
+    )
+    def was_published_recently(self):
+        # .....
+```
+
+使用 [`list_filter`](https://docs.djangoproject.com/zh-hans/3.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_filter)，`polls/admin.py`：
+
+```python
+class QuestionAdmin(admin.ModelAdmin):
+    
+    # .....
+    list_filter = ['pub_date']
+    search_fields = ['question_text']
+```
+
+- 自定义后台界面和风格
+
+`Django` 的后台由自己驱动，且它的交互接口采用 `Django` 自己的模板系统。
+
+在工程目录（指包含 `manage.py` 的那个文件夹）内创建一个名为 `templates` 的目录。模板可放在你系统中任何 `Django` 能找到的位置。
+
+`mysite/settings.py`：
+
+```python
+# 仔细检查路径， [BASE_DIR. / 'templates'] 官方写法不是很支持
+'DIRS': [os.path.join(BASE_DIR, 'templates')],
+```
+
+[`DIRS`](https://docs.djangoproject.com/zh-hans/3.2/ref/settings/#std:setting-TEMPLATES-DIRS) 是一个包含多个系统目录的文件列表，用于在载入 `Django` 模板时使用，是一个待搜索路径。
+
+在 `templates` 目录内创建名为 `admin` 的目录，随后，将存放 `Django` 默认模板的目录（`django/contrib/admin/templates`）内的模板文件 `admin/base_site.html` 复制到这个目录内。
+
+查找 `Django` 源码位置：
+
+```bash
+(/anaconda3) ☁  mysite [master] ⚡  python -c "import django;print(django.__path__)"
+['/anaconda3/lib/python3.7/site-packages/django']
+```
+
+```bash
+(/anaconda3) ☁  mysite [master] ⚡  cp /anaconda3/lib/python3.7/site-packages/django/contrib/admin/templates/admin/base_site.html templates/admin 
+```
 
 ## 进阶指南：如何编写可重用程序
 
