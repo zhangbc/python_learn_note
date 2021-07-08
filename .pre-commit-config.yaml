@@ -30,8 +30,8 @@ repos:
     - id: check-docstring-first
     - id: check-json
     - id: check-merge-conflict
-#    - id: no-commit-to-branch
-#      args: [--pattern, ^\d+\.\d+\.\d+-dev$, --pattern, ^\d+\.\d+\.\d+-vpc$]
+    - id: no-commit-to-branch
+      args: [--pattern, ^\d+\.\d+\.\d+-dev$, --pattern, ^\d+\.\d+\.\d+-vpc$]
     - id: trailing-whitespace
     - id: end-of-file-fixer
 -   repo: https://github.com/PyCQA/flake8
