@@ -5,6 +5,12 @@
     <title>文章详情</title>
 </head>
 <body>
+    <div> 顶部分类：
+        {% for nav in navs %}
+            <a href="/category/{{ nav.id }}">{{ nav.name }}</a>
+        {% endfor %}
+    </div>
+
     {% if post %}
         <div>
             <span>作者：{{ post.owner.username }}</span>
@@ -13,5 +19,18 @@
         <hr>
         <p>{{ post.content }}</p>
     {% endif %}
+
+    <div> 底部分类：
+        {% for cate in categories %}
+            <a href="/category/{{ cate.id }}">{{ cate.name }}</a>
+        {% endfor %}
+    </div>
+
+    <div> 侧边栏：
+        {% for sidebar in sidebars %}
+            <h4>{{ sidebar.title }}</h4>
+            {{ sidebar.content }}
+        {% endfor %}
+    </div>
 </body>
 </html>

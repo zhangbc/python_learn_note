@@ -28,6 +28,22 @@ class Category(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = "分类"
 
+    @classmethod
+    def get_navs(cls):
+        categories = cls.objects.filter(status=cls.STATUS_NORMAL)
+        nav_categories = list()
+        normal_categories = list()
+        for category in categories:
+            if category.is_nav:
+                nav_categories.append(category)
+            else:
+                normal_categories.append(category)
+
+        return {
+            'navs': nav_categories,
+            'categories': normal_categories,
+        }
+
 
 class Tag(models.Model):
     """
@@ -86,3 +102,33 @@ class Post(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = "文章"
         ordering = ['-id']
+
+    @staticmethod
+    def get_by_tag(tag_id):
+        try:
+            tag = Tag.objects.get(id=tag_id)
+        except Tag.DoesNotExist:
+            tag = None
+            plist = list()
+        else:
+            plist = tag.post_set.filter(status=Post.STATUS_NORMAL)\
+                .select_related('owner', 'category')
+
+        return plist, tag
+
+    @staticmethod
+    def get_by_category(category_id):
+        try:
+            category = Category.objects.get(id=category_id)
+        except Tag.DoesNotExist:
+            category = None
+            plist = list()
+        else:
+            plist = category.post_set.filter(status=Post.STATUS_NORMAL)\
+                .select_related('owner', 'category')
+
+        return plist, category
+
+    @classmethod
+    def lasted_posts(cls):
+        return cls.objects.filter(status=cls.STATUS_NORMAL)
