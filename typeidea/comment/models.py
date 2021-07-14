@@ -24,5 +24,12 @@ class Comment(models.Model):
                                          verbose_name="状态")
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
 
+    def __str__(self):
+        return self.content
+
     class Meta:
         verbose_name = verbose_name_plural = "评论"
+
+    @classmethod
+    def get_latest_comments(cls):
+        return cls.objects.filter(status=cls.STATUS_NORMAL)
