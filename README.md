@@ -204,7 +204,17 @@
 > Post.objects.aggregate(all_pv=Sum('pv'))
 > ```
 
-`reverse` 函数的作用就是通过 `name` 反向解析成 `URL`。
+`reverse` 函数的作用是通过 `name` 反向解析成 `URL`。
+
+`Django` 提供了下面几个 `class-based view`：
+
+> `View` ：基础的 `View` ，实现了基于 `HTTP` 方法的分发（ `dispatch` ）逻辑，比如 `GET` 请求会调用对应的 `get` 方法，`POST` 请求会调用对应的 `post` 方法，但没有实现具体的 `get` 或者 `post` 方法；
+>
+> `TemplateView`：继承自 `View`，可以直接用来返回指定的模板。 它实现了 `get` 方法，可以传递变量到模板中来进行数据展示；
+>
+> `DetailView` ：继承自 `View`，实现了 `get` 方法，并且可以绑定某一个模板，用来获取单个实例的数据；
+>
+> `ListView`：继承自 `View`，实现了 `get` 方法，可以通过绑定模板来批量获取数据。
 
 ## TODO
 
