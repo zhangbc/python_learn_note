@@ -204,7 +204,7 @@
 > Post.objects.aggregate(all_pv=Sum('pv'))
 > ```
 
-
+`reverse` 函数的作用就是通过 `name` 反向解析成 `URL`。
 
 ## TODO
 
