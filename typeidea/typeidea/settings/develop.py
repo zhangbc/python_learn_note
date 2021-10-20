@@ -25,7 +25,7 @@ DATABASES = {
     }
 }
 
-THEME = 'boostrap'
+THEME = 'bootstrap'
 
 TEMPLATES = [
     {

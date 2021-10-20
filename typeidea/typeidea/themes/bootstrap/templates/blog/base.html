@@ -25,8 +25,9 @@
                         </li>
                     {% endfor %}
                 </ul>
-                <form class="form-inline my-2 my-lg-0" action="GET">
-                    <input type="search" class="form-control mr-sm-2" placeholder="Search" aria-label="Search">
+                <form class="form-inline my-2 my-lg-0" action="/search/" method="GET">
+                    <input type="search" class="form-control mr-sm-2" placeholder="Search"
+                           aria-label="Search" value="{{ keyword }}">
                     <button class="btn btn-outline-success" type="submit">搜索🔍</button>
                 </form>
             </div>
@@ -34,7 +35,7 @@
 
         <div class="jumbotron">
             <h1 class="display-4">Typeidea</h1>
-            <p class="lead">基于Django的多人博客系统</p>
+            <p class="lead">基于Django的多人博客系统(bootstrap)</p>
         </div>
     </div>
 
