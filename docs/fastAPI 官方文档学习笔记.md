@@ -10,7 +10,7 @@
 
 关键特性：
 
-> **快速**：可与 **NodeJS** 和 **Go** 比肩的极高性能（归功于 `Starlette` 和 `Pydantic`）；
+> **快速**：可与 **`NodeJS`** 和 **`Go`** 比肩的极高性能（归功于 `Starlette` 和 `Pydantic`）；
 >
 > **高效编码**：提高功能开发速度约 200％ 至 300％；
 >
@@ -24,7 +24,7 @@
 >
 > **健壮**：生产可用级别的代码，还有自动生成的交互式文档；
 >
-> **标准化**：基于（并完全兼容）`API` 的相关开放标准：`OpenAPI`(以前被称为 `Swagger`) 和 [JSON Schema](https://json-schema.org/)。
+> **标准化**：基于（并完全兼容）`API` 的相关开放标准：`OpenAPI`(以前被称为 `Swagger`) 和 [`JSON Schema`](https://json-schema.org/)。
 
 **Python 3.6+ 版本**加入了对"类型提示"的支持。
 
@@ -79,7 +79,7 @@ INFO:     Application startup complete.
 >
 > `TRACE`
 
-所有的数据校验都由 [Pydantic](https://pydantic-docs.helpmanual.io/) 在幕后完成，如果你有一个接收路径参数的路径操作，但你希望预先设定可能的有效参数值，则可以使用标准的 `Python Enum` 类型。
+所有的数据校验都由 [`Pydantic`](https://pydantic-docs.helpmanual.io/) 在幕后完成，如果你有一个接收路径参数的路径操作，但你希望预先设定可能的有效参数值，则可以使用标准的 `Python Enum` 类型。
 
 ## 路径参数
 
