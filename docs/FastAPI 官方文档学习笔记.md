@@ -41,7 +41,7 @@
 (env3.7.3) (base) ☁  ~  pip install uvicorn[standard]
 
 # 运行实时服务器
-(env3.7.3) (base) ☁  pro_fast_api [master] ⚡  uvicorn main:app --reload
+(env3.7.3) (base) ☁ pro_fast_api [master] ⚡  uvicorn main:app --reload
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 INFO:     Started reloader process [41212] using watchgod
 INFO:     Started server process [41214]
@@ -123,7 +123,6 @@ async def read_item(item_id: int):
 ```
 
 如果有一个接收路径参数的路径操作，但希望预定义可能的有效路径参数值，则可以使用标准 `Python` 的 `Enum`。
-
 
 
 # 参考资料
