@@ -167,3 +167,6 @@ Temporary Items
 .apdisk
 .idea/
 reports/
+report.html
+assets/
+allure-report/

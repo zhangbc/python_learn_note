@@ -11,7 +11,7 @@
 """
 import pytest
 
-from src import calculator
+from .src import calculator
 
 
 class TestCalculator:
